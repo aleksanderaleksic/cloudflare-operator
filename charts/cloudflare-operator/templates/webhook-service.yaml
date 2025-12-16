@@ -1,0 +1,19 @@
+{{- if .Values.features.webhooks.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloudflare-operator.webhook.serviceName" . }}
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+spec:
+  type: {{ .Values.webhook.service.type }}
+  ports:
+    - port: {{ .Values.webhook.service.port }}
+      protocol: TCP
+      targetPort: {{ .Values.webhook.service.targetPort }}
+  selector:
+    {{- include "cloudflare-operator.selectorLabels" . | nindent 4 }}
+{{- end }}
