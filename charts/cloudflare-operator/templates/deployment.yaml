@@ -1,0 +1,111 @@
+{{- include "cloudflare-operator.validateFeatures" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "cloudflare-operator.fullname" . }}-controller-manager
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.operator.replicas }}
+  selector:
+    matchLabels:
+      {{- include "cloudflare-operator.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+        {{- include "cloudflare-operator.annotations" . | nindent 8 }}
+      labels:
+        {{- include "cloudflare-operator.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.operator.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- else }}
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: kubernetes.io/arch
+                  operator: In
+                  values:
+                    - amd64
+                    - arm64
+                - key: kubernetes.io/os
+                  operator: In
+                  values:
+                    - linux
+      {{- end }}
+      {{- with .Values.operator.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.operator.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.operator.securityContext | nindent 8 }}
+      containers:
+        - command:
+            - /manager
+          args:
+            {{- range .Values.operator.args }}
+            - {{ . | quote }}
+            {{- end }}
+            {{- if .Values.features.metrics.enabled }}
+            - --metrics-bind-address=:8443
+            {{- end }}
+            {{- if .Values.features.webhooks.enabled }}
+            - --webhook-cert-path={{ .Values.webhook.certDir }}
+            {{- end }}
+          image: {{ include "cloudflare-operator.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          name: manager
+          securityContext:
+            {{- toYaml .Values.operator.containerSecurityContext | nindent 12 }}
+          {{- if .Values.operator.healthProbe.livenessProbe }}
+          livenessProbe:
+            {{- toYaml .Values.operator.healthProbe.livenessProbe | nindent 12 }}
+          {{- end }}
+          {{- if .Values.operator.healthProbe.readinessProbe }}
+          readinessProbe:
+            {{- toYaml .Values.operator.healthProbe.readinessProbe | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.operator.resources | nindent 12 }}
+          {{- if or .Values.features.webhooks.enabled .Values.features.metrics.enabled }}
+          ports:
+            {{- if .Values.features.metrics.enabled }}
+            - containerPort: 8443
+              name: metrics
+              protocol: TCP
+            {{- end }}
+            {{- if .Values.features.webhooks.enabled }}
+            - containerPort: {{ .Values.webhook.port }}
+              name: webhook-server
+              protocol: TCP
+            {{- end }}
+          {{- end }}
+          {{- if .Values.features.webhooks.enabled }}
+          volumeMounts:
+            - mountPath: {{ .Values.webhook.certDir }}
+              name: webhook-certs
+              readOnly: true
+          {{- end }}
+      {{- with .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "cloudflare-operator.serviceAccountName" . }}
+      terminationGracePeriodSeconds: {{ .Values.operator.terminationGracePeriodSeconds }}
+      {{- if .Values.features.webhooks.enabled }}
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: {{ .Values.certManager.certificate.secretName }}
+      {{- end }}

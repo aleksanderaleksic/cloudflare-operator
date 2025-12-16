@@ -1,0 +1,12 @@
+{{- if and .Values.features.rbac.create (ne (include "cloudflare-operator.namespace" .) "cloudflare-operator-system") }}
+# Create the cloudflare-operator-system namespace if we're installing in a different namespace
+# This is needed because the operator is hardcoded to use this namespace for leader election
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloudflare-operator-system
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+{{- end }}

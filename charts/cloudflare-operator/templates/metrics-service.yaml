@@ -1,0 +1,20 @@
+{{- if .Values.features.metrics.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "cloudflare-operator.metrics.serviceName" . }}
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+spec:
+  type: {{ .Values.metrics.service.type }}
+  ports:
+  - name: {{ .Values.metrics.service.name }}
+    port: {{ .Values.metrics.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.metrics.service.targetPort }}
+  selector:
+    {{- include "cloudflare-operator.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "cloudflare-operator.fullname" . }}-test-connection"
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-health
+      image: busybox:1.36
+      command: 
+        - /bin/sh
+        - -c
+        - |
+          echo "Testing operator health endpoint..."
+          wget -q --spider {{ include "cloudflare-operator.fullname" . }}-controller-manager:8081/healthz
+          if [ $? -eq 0 ]; then
+            echo "✓ Health endpoint is accessible"
+          else
+            echo "✗ Health endpoint is not accessible"
+            exit 1
+          fi
+          
+          echo "Testing readiness endpoint..."
+          wget -q --spider {{ include "cloudflare-operator.fullname" . }}-controller-manager:8081/readyz
+          if [ $? -eq 0 ]; then
+            echo "✓ Readiness endpoint is accessible"
+          else
+            echo "✗ Readiness endpoint is not accessible"
+            exit 1
+          fi
+          
+          echo "All tests passed!"
+  {{- if .Values.features.rbac.create }}
+  serviceAccountName: {{ include "cloudflare-operator.serviceAccountName" . }}
+  {{- end }}
