@@ -1,0 +1,53 @@
+{{- if .Values.features.rbac.create }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "cloudflare-operator.fullname" . }}-test-rbac"
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "2"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-rbac
+      image: bitnami/kubectl:1.28
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Testing RBAC configuration..."
+          
+          # Test service account exists
+          kubectl get serviceaccount {{ include "cloudflare-operator.serviceAccountName" . }} -n {{ include "cloudflare-operator.namespace" . }}
+          if [ $? -eq 0 ]; then
+            echo "✓ Service account exists"
+          else
+            echo "✗ Service account not found"
+            exit 1
+          fi
+          
+          # Test cluster role exists
+          kubectl get clusterrole {{ include "cloudflare-operator.fullname" . }}-manager-role
+          if [ $? -eq 0 ]; then
+            echo "✓ Cluster role exists"
+          else
+            echo "✗ Cluster role not found"
+            exit 1
+          fi
+          
+          # Test cluster role binding exists
+          kubectl get clusterrolebinding {{ include "cloudflare-operator.fullname" . }}-manager-rolebinding
+          if [ $? -eq 0 ]; then
+            echo "✓ Cluster role binding exists"
+          else
+            echo "✗ Cluster role binding not found"
+            exit 1
+          fi
+          
+          echo "RBAC tests passed!"
+  serviceAccountName: {{ include "cloudflare-operator.serviceAccountName" . }}
+{{- end }}

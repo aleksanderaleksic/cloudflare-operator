@@ -1,0 +1,64 @@
+{{- if .Values.features.crds.install }}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "cloudflare-operator.fullname" . }}-test-crds"
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "4"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: test-crds
+      image: bitnami/kubectl:1.28
+      command:
+        - /bin/sh
+        - -c
+        - |
+          echo "Testing CRD installation..."
+          
+          # Test tunnels CRD exists
+          kubectl get crd tunnels.networking.cfargotunnel.com
+          if [ $? -eq 0 ]; then
+            echo "✓ Tunnels CRD exists"
+          else
+            echo "✗ Tunnels CRD not found"
+            exit 1
+          fi
+          
+          # Test clustertunnels CRD exists
+          kubectl get crd clustertunnels.networking.cfargotunnel.com
+          if [ $? -eq 0 ]; then
+            echo "✓ ClusterTunnels CRD exists"
+          else
+            echo "✗ ClusterTunnels CRD not found"
+            exit 1
+          fi
+          
+          # Test tunnelbindings CRD exists
+          kubectl get crd tunnelbindings.networking.cfargotunnel.com
+          if [ $? -eq 0 ]; then
+            echo "✓ TunnelBindings CRD exists"
+          else
+            echo "✗ TunnelBindings CRD not found"
+            exit 1
+          fi
+          
+          # Test accesstunnels CRD exists
+          kubectl get crd accesstunnels.networking.cfargotunnel.com
+          if [ $? -eq 0 ]; then
+            echo "✓ AccessTunnels CRD exists"
+          else
+            echo "✗ AccessTunnels CRD not found"
+            exit 1
+          fi
+          
+          echo "CRD tests passed!"
+  {{- if .Values.features.rbac.create }}
+  serviceAccountName: {{ include "cloudflare-operator.serviceAccountName" . }}
+  {{- end }}
+{{- end }}
