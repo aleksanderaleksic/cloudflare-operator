@@ -1,0 +1,21 @@
+apiVersion: v2
+name: cloudflare-operator
+description: A Helm chart for Cloudflare Operator - Kubernetes operator for managing Cloudflare Argo Tunnels
+type: application
+version: 0.1.0
+appVersion: "latest"
+home: https://github.com/adyanth/cloudflare-operator
+sources:
+  - https://github.com/adyanth/cloudflare-operator
+maintainers:
+  - name: Cloudflare Operator Maintainers
+    url: https://github.com/adyanth/cloudflare-operator
+keywords:
+  - cloudflare
+  - tunnel
+  - operator
+  - kubernetes
+annotations:
+  category: Networking
+dependencies: []
+kubeVersion: ">=1.20.0"

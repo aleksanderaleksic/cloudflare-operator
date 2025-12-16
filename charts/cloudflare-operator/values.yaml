@@ -1,0 +1,153 @@
+# Default values for cloudflare-operator.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global configuration
+global:
+  # -- Override the namespace for all resources
+  namespace: ""
+  # -- Override the name of the chart
+  nameOverride: ""
+  # -- Override the full name of the chart
+  fullnameOverride: ""
+
+# Image configuration
+image:
+  # -- Container image repository
+  repository: ghcr.io/adyanth/cloudflare-operator
+  # -- Container image tag (defaults to chart appVersion)
+  tag: ""
+  # -- Container image pull policy
+  pullPolicy: IfNotPresent
+  # -- Container image pull secrets
+  pullSecrets: []
+
+# Operator configuration
+operator:
+  # -- Number of operator replicas
+  replicas: 1
+  # -- Resource limits and requests for the operator
+  resources:
+    limits:
+      cpu: 200m
+      memory: 200Mi
+    requests:
+      cpu: 100m
+      memory: 100Mi
+  # -- Node selector for operator pods
+  nodeSelector: {}
+  # -- Tolerations for operator pods
+  tolerations: []
+  # -- Affinity rules for operator pods
+  affinity: {}
+  # -- Security context for operator pods
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Container security context
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - "ALL"
+  # -- Additional arguments for the operator
+  args:
+    - --leader-elect
+    - --health-probe-bind-address=:8081
+  # -- Health probe configuration
+  healthProbe:
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: 8081
+      initialDelaySeconds: 15
+      periodSeconds: 20
+    readinessProbe:
+      httpGet:
+        path: /readyz
+        port: 8081
+      initialDelaySeconds: 5
+      periodSeconds: 10
+  # -- Termination grace period in seconds
+  terminationGracePeriodSeconds: 10
+
+# Feature toggles
+features:
+  # -- Enable webhook functionality
+  webhooks:
+    enabled: true
+  # -- Enable cert-manager integration
+  certManager:
+    enabled: true
+  # -- Enable metrics endpoint
+  metrics:
+    enabled: true
+  # -- Create RBAC resources
+  rbac:
+    create: true
+  # -- Install Custom Resource Definitions
+  crds:
+    install: true
+  # -- Enable network policies
+  networkPolicy:
+    enabled: false
+
+# Webhook configuration
+webhook:
+  # -- Webhook server port
+  port: 9443
+  # -- Certificate directory path
+  certDir: /tmp/k8s-webhook-server/serving-certs
+  # -- Webhook service configuration
+  service:
+    type: ClusterIP
+    port: 443
+    targetPort: 9443
+
+# Cert-manager configuration
+certManager:
+  # -- Certificate issuer configuration
+  issuer:
+    create: true
+    name: selfsigned-issuer
+    kind: Issuer
+  # -- Certificate configuration
+  certificate:
+    name: serving-cert
+    secretName: webhook-server-cert
+    dnsNames: []
+    duration: 8760h  # 1 year
+    renewBefore: 720h  # 30 days
+
+# Metrics configuration
+metrics:
+  # -- Metrics service configuration
+  service:
+    type: ClusterIP
+    port: 8443
+    targetPort: 8443
+    name: https
+
+# RBAC configuration
+rbac:
+  # -- Service account name (generated if not specified)
+  serviceAccountName: ""
+  # -- Service account annotations
+  serviceAccountAnnotations: {}
+  # -- Additional RBAC rules for the operator
+  additionalRules: []
+
+# Network policy configuration
+networkPolicy:
+  # -- Ingress rules for network policy
+  ingress: []
+  # -- Egress rules for network policy
+  egress: []
+
+# Additional labels to apply to all resources
+commonLabels: {}
+
+# Additional annotations to apply to all resources
+commonAnnotations: {}
