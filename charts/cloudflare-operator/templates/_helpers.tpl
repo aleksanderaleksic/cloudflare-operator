@@ -109,7 +109,21 @@ Generate image name with tag
 */}}
 {{- define "cloudflare-operator.image" -}}
 {{- $tag := .Values.image.tag | default .Chart.AppVersion }}
+{{- if not $tag }}
+{{- fail "Image tag must be specified either in values.image.tag or Chart.appVersion" }}
+{{- end }}
 {{- printf "%s:%s" .Values.image.repository $tag }}
+{{- end }}
+
+{{/*
+Validate version consistency
+*/}}
+{{- define "cloudflare-operator.validateVersions" -}}
+{{- if and .Values.image.tag .Chart.AppVersion }}
+{{- if ne .Values.image.tag .Chart.AppVersion }}
+{{- printf "Warning: Image tag (%s) differs from Chart appVersion (%s)" .Values.image.tag .Chart.AppVersion | print }}
+{{- end }}
+{{- end }}
 {{- end }}
 
 {{/*
