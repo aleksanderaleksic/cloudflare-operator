@@ -1,0 +1,324 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "description": "Override the namespace for all resources"
+        },
+        "nameOverride": {
+          "type": "string",
+          "description": "Override the name of the chart"
+        },
+        "fullnameOverride": {
+          "type": "string",
+          "description": "Override the full name of the chart"
+        }
+      }
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {
+          "type": "string",
+          "description": "Container image repository"
+        },
+        "tag": {
+          "type": "string",
+          "description": "Container image tag"
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "description": "Container image pull policy"
+        },
+        "pullSecrets": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Container image pull secrets"
+        }
+      },
+      "required": ["repository"]
+    },
+    "operator": {
+      "type": "object",
+      "properties": {
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of operator replicas"
+        },
+        "resources": {
+          "type": "object",
+          "properties": {
+            "limits": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            },
+            "requests": {
+              "type": "object",
+              "properties": {
+                "cpu": {"type": "string"},
+                "memory": {"type": "string"}
+              }
+            }
+          }
+        },
+        "nodeSelector": {
+          "type": "object",
+          "description": "Node selector for operator pods"
+        },
+        "tolerations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Tolerations for operator pods"
+        },
+        "affinity": {
+          "type": "object",
+          "description": "Affinity rules for operator pods"
+        },
+        "terminationGracePeriodSeconds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Termination grace period in seconds"
+        }
+      }
+    },
+    "features": {
+      "type": "object",
+      "properties": {
+        "webhooks": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable webhook functionality"
+            }
+          }
+        },
+        "certManager": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable cert-manager integration"
+            }
+          }
+        },
+        "metrics": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable metrics endpoint"
+            }
+          }
+        },
+        "rbac": {
+          "type": "object",
+          "properties": {
+            "create": {
+              "type": "boolean",
+              "description": "Create RBAC resources"
+            }
+          }
+        },
+        "crds": {
+          "type": "object",
+          "properties": {
+            "install": {
+              "type": "boolean",
+              "description": "Install Custom Resource Definitions"
+            }
+          }
+        },
+        "networkPolicy": {
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Enable network policies"
+            }
+          }
+        }
+      }
+    },
+    "webhook": {
+      "type": "object",
+      "properties": {
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535,
+          "description": "Webhook server port"
+        },
+        "certDir": {
+          "type": "string",
+          "description": "Certificate directory path"
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "description": "Webhook service type"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "Webhook service port"
+            },
+            "targetPort": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "Webhook service target port"
+            }
+          }
+        }
+      }
+    },
+    "certManager": {
+      "type": "object",
+      "properties": {
+        "issuer": {
+          "type": "object",
+          "properties": {
+            "create": {
+              "type": "boolean",
+              "description": "Create certificate issuer"
+            },
+            "name": {
+              "type": "string",
+              "description": "Certificate issuer name"
+            },
+            "kind": {
+              "type": "string",
+              "enum": ["Issuer", "ClusterIssuer"],
+              "description": "Certificate issuer kind"
+            }
+          }
+        },
+        "certificate": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "Certificate name"
+            },
+            "secretName": {
+              "type": "string",
+              "description": "Certificate secret name"
+            },
+            "dnsNames": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Certificate DNS names"
+            },
+            "duration": {
+              "type": "string",
+              "description": "Certificate duration"
+            },
+            "renewBefore": {
+              "type": "string",
+              "description": "Certificate renewal time"
+            }
+          }
+        }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "description": "Metrics service type"
+            },
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "Metrics service port"
+            },
+            "targetPort": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "Metrics service target port"
+            },
+            "name": {
+              "type": "string",
+              "description": "Metrics service port name"
+            }
+          }
+        }
+      }
+    },
+    "rbac": {
+      "type": "object",
+      "properties": {
+        "serviceAccountName": {
+          "type": "string",
+          "description": "Service account name"
+        },
+        "serviceAccountAnnotations": {
+          "type": "object",
+          "description": "Service account annotations"
+        },
+        "additionalRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Additional RBAC rules"
+        }
+      }
+    },
+    "networkPolicy": {
+      "type": "object",
+      "properties": {
+        "ingress": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Ingress rules for network policy"
+        },
+        "egress": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "description": "Egress rules for network policy"
+        }
+      }
+    },
+    "commonLabels": {
+      "type": "object",
+      "description": "Additional labels to apply to all resources"
+    },
+    "commonAnnotations": {
+      "type": "object",
+      "description": "Additional annotations to apply to all resources"
+    }
+  },
+  "required": ["image"]
+}
