@@ -1,0 +1,69 @@
+1. Get the application URL by running these commands:
+{{- if .Values.features.metrics.enabled }}
+  export POD_NAME=$(kubectl get pods --namespace {{ include "cloudflare-operator.namespace" . }} -l "{{ include "cloudflare-operator.selectorLabels" . }}" -o jsonpath="{.items[0].metadata.name}")
+  export CONTAINER_PORT=$(kubectl get pod --namespace {{ include "cloudflare-operator.namespace" . }} $POD_NAME -o jsonpath="{.spec.containers[0].ports[0].containerPort}")
+  echo "Visit https://127.0.0.1:8443 to access the metrics endpoint"
+  kubectl --namespace {{ include "cloudflare-operator.namespace" . }} port-forward $POD_NAME 8443:$CONTAINER_PORT
+{{- end }}
+
+2. The Cloudflare Operator has been installed successfully!
+
+   Operator Status:
+   - Namespace: {{ include "cloudflare-operator.namespace" . }}
+   - Release Name: {{ .Release.Name }}
+   - Chart Version: {{ .Chart.Version }}
+   - App Version: {{ .Chart.AppVersion }}
+
+   Features Enabled:
+{{- if .Values.features.webhooks.enabled }}
+   ✓ Webhooks
+{{- else }}
+   ✗ Webhooks (disabled)
+{{- end }}
+{{- if .Values.features.certManager.enabled }}
+   ✓ Cert-Manager Integration
+{{- else }}
+   ✗ Cert-Manager Integration (disabled)
+{{- end }}
+{{- if .Values.features.metrics.enabled }}
+   ✓ Metrics Endpoint
+{{- else }}
+   ✗ Metrics Endpoint (disabled)
+{{- end }}
+{{- if .Values.features.rbac.create }}
+   ✓ RBAC Resources
+{{- else }}
+   ✗ RBAC Resources (disabled)
+{{- end }}
+
+3. To create your first tunnel, apply a Tunnel custom resource:
+
+   kubectl apply -f - <<EOF
+   apiVersion: networking.cfargotunnel.com/v1alpha1
+   kind: Tunnel
+   metadata:
+     name: example-tunnel
+     namespace: {{ include "cloudflare-operator.namespace" . }}
+   spec:
+     cloudflare:
+       email: your-email@example.com
+       domain: example.com
+       CLOUDFLARE_API_TOKEN: your-api-token
+     size: 1
+   EOF
+
+4. Monitor the operator logs:
+   kubectl logs -f deployment/{{ include "cloudflare-operator.fullname" . }}-controller-manager -n {{ include "cloudflare-operator.namespace" . }}
+
+5. For more information, visit:
+   - Documentation: https://github.com/adyanth/cloudflare-operator
+   - Issues: https://github.com/adyanth/cloudflare-operator/issues
+
+{{- if .Values.features.webhooks.enabled }}
+{{- if not .Values.features.certManager.enabled }}
+
+⚠️  WARNING: Webhooks are enabled but cert-manager is disabled. 
+   This configuration may cause issues with webhook certificate management.
+   Consider enabling cert-manager or providing your own certificate management solution.
+{{- end }}
+{{- end }}
