@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "cloudflare-operator.fullname" . }}-test-connection"
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-weight": "1"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: wget
+      image: busybox:1.36
+      command: ['wget']
+      args: ['{{ include "cloudflare-operator.fullname" . }}-controller-manager:8081/healthz']
+  {{- if .Values.features.rbac.create }}
+  serviceAccountName: {{ include "cloudflare-operator.serviceAccountName" . }}
+  {{- end }}

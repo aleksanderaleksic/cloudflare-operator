@@ -122,6 +122,19 @@ Validate webhook dependencies
 {{- end }}
 
 {{/*
+Validate feature combinations
+*/}}
+{{- define "cloudflare-operator.validateFeatures" -}}
+{{- include "cloudflare-operator.validateWebhook" . }}
+{{- if and .Values.features.metrics.enabled (not .Values.features.rbac.create) }}
+{{- fail "Metrics functionality requires RBAC to be enabled. Please set features.rbac.create=true or disable metrics." }}
+{{- end }}
+{{- if and .Values.features.crds.install (not .Values.features.rbac.create) }}
+{{- fail "CRD installation requires RBAC to be enabled for proper operator functionality. Please set features.rbac.create=true." }}
+{{- end }}
+{{- end }}
+
+{{/*
 Common annotations
 */}}
 {{- define "cloudflare-operator.annotations" -}}
