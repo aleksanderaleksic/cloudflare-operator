@@ -1,6 +1,6 @@
 {{- if .Values.features.webhooks.enabled }}
 apiVersion: admissionregistration.k8s.io/v1
-kind: MutatingAdmissionWebhook
+kind: MutatingAdmissionWebhookConfiguration
 metadata:
   name: {{ include "cloudflare-operator.fullname" . }}-mutating-webhook-configuration
   labels:
