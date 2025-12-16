@@ -1,5 +1,5 @@
 {{- if .Values.features.rbac.create }}
-# permissions to do leader election.
+# permissions to do leader election in the current namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -41,4 +41,50 @@ rules:
   verbs:
   - create
   - patch
+---
+{{- if ne (include "cloudflare-operator.namespace" .) "cloudflare-operator-system" }}
+# permissions to do leader election in the cloudflare-operator-system namespace
+# This is needed because the operator is hardcoded to use this namespace for leader election
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cloudflare-operator.fullname" . }}-leader-election-role-system
+  namespace: cloudflare-operator-system
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - patch
+  - delete
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+  - patch
+{{- end }}
 {{- end }}

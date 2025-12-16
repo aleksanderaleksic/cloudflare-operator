@@ -16,4 +16,24 @@ subjects:
 - kind: ServiceAccount
   name: {{ include "cloudflare-operator.serviceAccountName" . }}
   namespace: {{ include "cloudflare-operator.namespace" . }}
+---
+{{- if ne (include "cloudflare-operator.namespace" .) "cloudflare-operator-system" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cloudflare-operator.fullname" . }}-leader-election-rolebinding-system
+  namespace: cloudflare-operator-system
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "cloudflare-operator.fullname" . }}-leader-election-role-system
+subjects:
+- kind: ServiceAccount
+  name: {{ include "cloudflare-operator.serviceAccountName" . }}
+  namespace: {{ include "cloudflare-operator.namespace" . }}
+{{- end }}
 {{- end }}
