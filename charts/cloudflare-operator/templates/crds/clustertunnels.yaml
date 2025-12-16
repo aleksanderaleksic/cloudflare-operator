@@ -18,6 +18,18 @@ spec:
     plural: clustertunnels
     singular: clustertunnel
   scope: Cluster
+  {{- if .Values.features.webhooks.enabled }}
+  conversion:
+    strategy: Webhook
+    webhook:
+      clientConfig:
+        service:
+          namespace: {{ include "cloudflare-operator.namespace" . }}
+          name: {{ include "cloudflare-operator.webhook.serviceName" . }}
+          path: /convert
+      conversionReviewVersions:
+      - v1
+  {{- end }}
   versions:
   - additionalPrinterColumns:
     - jsonPath: .status.tunnelId

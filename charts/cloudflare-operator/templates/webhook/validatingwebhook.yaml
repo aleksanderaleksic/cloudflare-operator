@@ -1,0 +1,52 @@
+{{- if .Values.features.webhooks.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionWebhook
+metadata:
+  name: {{ include "cloudflare-operator.fullname" . }}-validating-webhook-configuration
+  labels:
+    {{- include "cloudflare-operator.labels" . | nindent 4 }}
+  annotations:
+    {{- include "cloudflare-operator.certManager.caInjection" . | nindent 4 }}
+    {{- include "cloudflare-operator.annotations" . | nindent 4 }}
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ include "cloudflare-operator.webhook.serviceName" . }}
+      namespace: {{ include "cloudflare-operator.namespace" . }}
+      path: /validate-networking-cfargotunnel-com-v1alpha2-tunnel
+  failurePolicy: Fail
+  name: vtunnel.kb.io
+  rules:
+  - apiGroups:
+    - networking.cfargotunnel.com
+    apiVersions:
+    - v1alpha2
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - tunnels
+  sideEffects: None
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: {{ include "cloudflare-operator.webhook.serviceName" . }}
+      namespace: {{ include "cloudflare-operator.namespace" . }}
+      path: /validate-networking-cfargotunnel-com-v1alpha2-clustertunnel
+  failurePolicy: Fail
+  name: vclustertunnel.kb.io
+  rules:
+  - apiGroups:
+    - networking.cfargotunnel.com
+    apiVersions:
+    - v1alpha2
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - clustertunnels
+  sideEffects: None
+{{- end }}
