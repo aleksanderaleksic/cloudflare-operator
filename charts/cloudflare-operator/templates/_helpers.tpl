@@ -80,14 +80,14 @@ Generate the namespace to use
 Generate webhook service name
 */}}
 {{- define "cloudflare-operator.webhook.serviceName" -}}
-{{- printf "%s-webhook-service" (include "cloudflare-operator.fullname" .) }}
+{{- printf "%s-webhook" (include "cloudflare-operator.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Generate metrics service name
 */}}
 {{- define "cloudflare-operator.metrics.serviceName" -}}
-{{- printf "%s-controller-manager-metrics-service" (include "cloudflare-operator.fullname" .) }}
+{{- printf "%s-metrics" (include "cloudflare-operator.fullname" .) | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
