@@ -56,11 +56,20 @@ helm install cloudflare-operator cloudflare-operator/cloudflare-operator \
      --set features.webhooks.enabled=false
    ```
 
-3. To upgrade the operator:
+3. To upgrade the operator (using repository):
    ```bash
    helm upgrade cloudflare-operator cloudflare-operator/cloudflare-operator \
      --namespace cloudflare-operator-system
    ```
+
+#### Upgrading from Source
+
+To upgrade when installed from source:
+
+```bash
+helm upgrade cloudflare-operator ./charts/cloudflare-operator \
+  --namespace cloudflare-operator-system
+```
 
 For more configuration options, see the [Helm chart documentation](../charts/cloudflare-operator/README.md).
 

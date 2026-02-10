@@ -103,6 +103,8 @@ echo ""
 echo "✅ CRD sync completed successfully!"
 echo ""
 echo "Synced files:"
-ls -1 "$CRD_DEST_DIR"/*.yaml | while read -r file; do
-    echo "  - $(basename "$file")"
+for file in "$CRD_DEST_DIR"/*.yaml; do
+    if [ -f "$file" ]; then
+        echo "  - $(basename "$file")"
+    fi
 done
