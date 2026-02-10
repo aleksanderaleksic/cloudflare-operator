@@ -12,9 +12,11 @@ A Helm chart for deploying the Cloudflare Operator, a Kubernetes operator for ma
 
 ### Add the Helm Repository
 
+The Helm chart is automatically published to GitHub Pages on every release.
+
 ```bash
-# Add the repository (when published)
-helm repo add cloudflare-operator https://charts.cloudflare-operator.io
+# Add the repository
+helm repo add cloudflare-operator https://aleksanderaleksic.github.io/cloudflare-operator
 helm repo update
 ```
 
@@ -275,6 +277,40 @@ helm test cloudflare-operator
 ```
 
 ## Development
+
+### CRD Synchronization
+
+The CRDs in this Helm chart are automatically synchronized from the `config/crd/bases/` directory. When CRDs are updated by running `make manifests` in the root of the repository, they can be synced to the Helm chart using:
+
+```bash
+# From the repository root
+make helm-sync-crds
+
+# Or from the chart directory
+cd charts/cloudflare-operator
+make sync-crds
+```
+
+The sync script:
+- Copies CRDs from `config/crd/bases/` to `charts/cloudflare-operator/templates/crds/`
+- Adds Helm templating for labels, annotations, and conditional installation
+- Maintains consistency between the operator's CRDs and the Helm chart
+
+**Note:** The GitHub Actions workflow automatically syncs CRDs when changes are detected in `config/crd/bases/` or `charts/` directories.
+
+### Helm Chart Release Process
+
+The Helm chart is automatically released using GitHub Actions:
+
+1. **Automatic CRD Sync**: When CRDs change in `config/crd/bases/`, they are automatically synced to the chart
+2. **Chart Packaging**: The chart is packaged and validated using [chart-releaser](https://github.com/helm/chart-releaser)
+3. **GitHub Pages**: The chart is published to GitHub Pages at `https://aleksanderaleksic.github.io/cloudflare-operator`
+4. **GitHub Releases**: Chart versions are tagged and released automatically
+
+To trigger a new chart release:
+- Update the `version` field in `charts/cloudflare-operator/Chart.yaml`
+- Push changes to the `main` branch
+- The workflow will automatically package and release the new version
 
 ### Testing the Chart
 
