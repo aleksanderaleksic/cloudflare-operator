@@ -4,11 +4,15 @@ CHART_DIR := .
 SCRIPTS_DIR := $(CHART_DIR)/scripts
 DIST_DIR := ../../dist
 
-.PHONY: help lint test package clean install uninstall template
+.PHONY: help lint test package clean install uninstall template sync-crds
 
 help: ## Show this help message
 	@echo "Available targets:"
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  %-15s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+sync-crds: ## Sync CRDs from config/crd/bases to chart templates
+	@echo "Syncing CRDs..."
+	$(SCRIPTS_DIR)/sync-crds.sh
 
 lint: ## Lint the Helm chart
 	@echo "Linting Helm chart..."

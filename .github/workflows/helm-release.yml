@@ -1,0 +1,81 @@
+name: Release Helm Chart
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'charts/**'
+      - 'config/crd/bases/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-crds:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Sync CRDs to Helm Chart
+        run: |
+          echo "Syncing CRDs to Helm chart..."
+          make helm-sync-crds
+          
+          # Check if there are any changes
+          if git diff --quiet charts/cloudflare-operator/templates/crds/; then
+            echo "✅ No CRD changes detected - chart is up to date"
+            echo "crds_synced=false" >> $GITHUB_OUTPUT
+          else
+            echo "📝 CRD changes detected - updating chart"
+            git add charts/cloudflare-operator/templates/crds/
+            git commit -m "chore: sync CRDs to Helm chart [skip ci]"
+            git push
+            echo "crds_synced=true" >> $GITHUB_OUTPUT
+          fi
+        id: sync
+
+  release:
+    runs-on: ubuntu-latest
+    needs: sync-crds
+    if: always()
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: main  # Ensure we get the latest changes including CRD sync
+
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: 'v3.16.3'
+
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          charts_dir: charts
+          skip_existing: true

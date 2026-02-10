@@ -14,7 +14,31 @@ To install this operator, you need the following:
 
 ### Helm installation (recommended)
 
-The easiest way to install the Cloudflare Operator is using Helm:
+The easiest way to install the Cloudflare Operator is using Helm.
+
+#### Install from Helm Repository
+
+The Helm chart is automatically published to GitHub Pages:
+
+```bash
+# Add the Helm repository
+helm repo add cloudflare-operator https://aleksanderaleksic.github.io/cloudflare-operator
+helm repo update
+
+# Install the operator
+helm install cloudflare-operator cloudflare-operator/cloudflare-operator \
+  --create-namespace \
+  --namespace cloudflare-operator-system
+
+# Or with custom values
+helm install cloudflare-operator cloudflare-operator/cloudflare-operator \
+  --create-namespace \
+  --namespace cloudflare-operator-system \
+  --set image.tag=v0.13.1 \
+  --set features.webhooks.enabled=false
+```
+
+#### Install from Source
 
 1. Install the chart directly from the repository:
    ```bash
@@ -32,11 +56,20 @@ The easiest way to install the Cloudflare Operator is using Helm:
      --set features.webhooks.enabled=false
    ```
 
-3. To upgrade the operator:
+3. To upgrade the operator (using repository):
    ```bash
-   helm upgrade cloudflare-operator ./charts/cloudflare-operator \
+   helm upgrade cloudflare-operator cloudflare-operator/cloudflare-operator \
      --namespace cloudflare-operator-system
    ```
+
+#### Upgrading from Source
+
+To upgrade when installed from source:
+
+```bash
+helm upgrade cloudflare-operator ./charts/cloudflare-operator \
+  --namespace cloudflare-operator-system
+```
 
 For more configuration options, see the [Helm chart documentation](../charts/cloudflare-operator/README.md).
 
